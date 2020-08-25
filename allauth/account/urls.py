@@ -20,7 +20,7 @@ urlpatterns = [
             name="account_confirm_email"),
     path("confirm-delete-email/", views.email_delete_verification_sent,
          name="account_email_delete_verification_sent"),
-    re_path(r"^confirm-delete-email/(?P<key>[-:\w]+/$", views.confirm_delete_email,
+    re_path(r"^confirm-delete-email/(?P<key>[-:\w]+)/$", views.confirm_delete_email,
             name="account_confirm_delete_email"),
 
 
