@@ -455,6 +455,22 @@ class DefaultAccountAdapter(object):
                        emailconfirmation.email_address.email,
                        ctx)
 
+    def send_delete_confirmation_mail(self, request, emailconfirmation):
+        current_site = get_current_site(request)
+        activate_url = self.get_email_confirmation_url(
+            request,
+            emailconfirmation)
+        ctx = {
+            "user": emailconfirmation.email_address.user,
+            "activate_url": activate_url,
+            "current_site": current_site,
+            "key": emailconfirmation.key,
+        }
+        email_template = 'account/email/email_delete_confirmation'
+        self.send_mail(email_template,
+                       emailconfirmation.email_address.email,
+                       ctx)
+
     def respond_user_inactive(self, request, user):
         return HttpResponseRedirect(
             reverse('account_inactive'))

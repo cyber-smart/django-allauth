@@ -1,0 +1,2 @@
+{% load i18n %}
+{% blocktrans %}Confirmation of removal of e-mail address sent to {{email}}.{% endblocktrans %}

@@ -18,6 +18,12 @@ urlpatterns = [
          name="account_email_verification_sent"),
     re_path(r"^confirm-email/(?P<key>[-:\w]+)/$", views.confirm_email,
             name="account_confirm_email"),
+    path("confirm-delete-email/", views.email_delete_verification_sent,
+         name="account_email_delete_verification_sent"),
+    re_path(r"^confirm-delete-email/(?P<key>[-:\w]+/$", views.confirm_delete_email,
+            name="account_confirm_delete_email")
+
+
 
     # password reset
     path("password/reset/", views.password_reset,

@@ -58,6 +58,14 @@ class EmailAddress(models.Model):
         confirmation.send(request, signup=signup)
         return confirmation
 
+    def send_delete_confirmation(self, request=None):
+        if app_settings.EMAIL_CONFIRMATION_HMAC:
+            confirmation = EmailConfirmationHMAC(self)
+        else:
+            confirmation = EmailConfirmation.create(self)
+        confirmation.send(request, signup=False)
+        return confirmation
+
     def change(self, request, new_email, confirm=True):
         """
         Given a new email address, change self and re-confirm.
@@ -133,6 +141,10 @@ class EmailConfirmationHMAC:
         return signing.dumps(
             obj=self.email_address.pk,
             salt=app_settings.SALT)
+
+    @property
+    def email_address(self):
+        return self.email_address
 
     @classmethod
     def from_key(cls, key):
