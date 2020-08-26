@@ -825,7 +825,8 @@ class AccountTests(TestCase):
             email='a@b.com',
             verified=False,
             primary=True)
-        confirmation = EmailConfirmationHMAC(email)
+        confirmation = EmailConfirmationHMAC()
+        confirmation.email_address(email)
         confirmation.send()
         self.assertEqual(len(mail.outbox), 1)
         self.client.post(
@@ -844,7 +845,8 @@ class AccountTests(TestCase):
             email='a@b.com',
             verified=False,
             primary=True)
-        confirmation = EmailConfirmationHMAC(email)
+        confirmation = EmailConfirmationHMAC()
+        confirmation.email_address(email)
         confirmation.send()
         self.assertEqual(len(mail.outbox), 1)
         self.client.post(
@@ -1240,7 +1242,9 @@ class ConfirmationViewTests(TestCase):
             email='a@b.com',
             verified=False,
             primary=True)
-        key = EmailConfirmationHMAC(email).key
+        confirmation = EmailConfirmationHMAC()
+        confirmation.email_address(email)
+        key = confirmation.key
 
         receiver_mock = Mock()  # we've logged if signal was called
         user_logged_in.connect(receiver_mock)

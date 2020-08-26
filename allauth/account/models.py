@@ -134,7 +134,7 @@ class EmailConfirmation(models.Model):
 class EmailConfirmationHMAC:
 
     def __init__(self, email_address):
-        self.email_address = email_address
+        self._email_address = email_address
 
     @property
     def key(self):
@@ -144,7 +144,11 @@ class EmailConfirmationHMAC:
 
     @property
     def email_address(self):
-        return self.email_address
+        return self._email_address
+
+    @email_address.setter
+    def email_address(self, email_address):
+        self._email_address = email_address
 
     @classmethod
     def from_key(cls, key):
