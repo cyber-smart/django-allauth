@@ -442,7 +442,7 @@ class DefaultAccountAdapter(object):
             url)
         return ret
 
-    def get_delete_email_confirmation_url(self, request, emailconfirmation):
+    def get_delete_email_confirmation_url(self, request, emaildelconfirmation):
         """Constructs the email confirmation (activation) url.
 
         Note that if you have architected your system such that email
@@ -451,7 +451,7 @@ class DefaultAccountAdapter(object):
         """
         url = reverse(
             "account_confirm_delete_email",
-            args=[emailconfirmation.key])
+            args=[emaildelconfirmation.key])
         ret = build_absolute_uri(
             request,
             url)
@@ -476,20 +476,20 @@ class DefaultAccountAdapter(object):
                        emailconfirmation.email_address.email,
                        ctx)
 
-    def send_delete_confirmation_mail(self, request, emailconfirmation):
+    def send_delete_confirmation_mail(self, request, emaildelconfirmation):
         current_site = get_current_site(request)
         activate_url = self.get_delete_email_confirmation_url(
             request,
-            emailconfirmation)
+            emaildelconfirmation)
         ctx = {
-            "user": emailconfirmation.email_address.user,
+            "user": emaildelconfirmation.email_address.user,
             "activate_url": activate_url,
             "current_site": current_site,
-            "key": emailconfirmation.key,
+            "key": emaildelconfirmation.key,
         }
         email_template = 'account/email/email_delete_confirmation'
         self.send_mail(email_template,
-                       emailconfirmation.email_address.email,
+                       emaildelconfirmation.email_address.email,
                        ctx)
 
     def respond_user_inactive(self, request, user):
