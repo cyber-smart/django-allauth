@@ -387,7 +387,7 @@ class ConfirmDeleteEmailView(TemplateResponseMixin, View):
     def post(self, *args, **kwargs):
         self.object = confirmation = self.get_object()
         email_address = confirmation.email_address
-        email_address.delete()
+        confirmation.confirm(self.request)
 
         
         signals.email_removed.send(sender=request.user.__class__,
