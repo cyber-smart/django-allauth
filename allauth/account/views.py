@@ -466,10 +466,10 @@ class ConfirmDeleteEmailView(TemplateResponseMixin, View):
             if queryset is None:
                 queryset = self.get_queryset()
             try:
-                emailconfirmation = queryset.get(key=key.lower())
+                emaildelconfirmation = queryset.get(key=key.lower())
             except EmailDeleteConfirmation.DoesNotExist:
                 raise Http404()
-        return emailconfirmation
+        return emaildelconfirmation
 
     def get_queryset(self):
         qs = EmailDeleteConfirmation.objects.all_valid()
