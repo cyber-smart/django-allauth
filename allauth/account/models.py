@@ -253,7 +253,7 @@ class EmailDeleteConfirmationHMAC:
                 key,
                 max_age=max_age,
                 salt=app_settings.SALT)
-            ret = EmailConfirmationHMAC(EmailAddress.objects.get(pk=pk))
+            ret = EmailDeleteConfirmationHMAC(EmailAddress.objects.get(pk=pk))
         except (signing.SignatureExpired,
                 signing.BadSignature,
                 EmailAddress.DoesNotExist):
