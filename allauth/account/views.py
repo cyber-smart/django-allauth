@@ -33,6 +33,7 @@ from .models import (
     EmailDeleteConfirmation,
     EmailConfirmationHMAC,
     EmailDeleteConfirmationHMAC,
+)
 from .utils import (
     complete_signup,
     get_login_redirect_url,
