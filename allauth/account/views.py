@@ -455,18 +455,18 @@ class ConfirmDeleteEmailView(TemplateResponseMixin, View):
 
     def get_object(self, queryset=None):
         key = self.kwargs['key']
-        emailconfirmation = EmailConfirmationHMAC.from_key(key)
-        if not emailconfirmation:
+        emaildelconfirmation = EmailDeleteConfirmationHMAC.from_key(key)
+        if not emaildelconfirmation:
             if queryset is None:
                 queryset = self.get_queryset()
             try:
                 emailconfirmation = queryset.get(key=key.lower())
-            except EmailConfirmation.DoesNotExist:
+            except EmailDeleteConfirmation.DoesNotExist:
                 raise Http404()
         return emailconfirmation
 
     def get_queryset(self):
-        qs = EmailConfirmation.objects.all_valid()
+        qs = EmailDeleteConfirmation.objects.all_valid()
         qs = qs.select_related("email_address__user")
         return qs
 
