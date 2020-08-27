@@ -401,6 +401,12 @@ class DefaultAccountAdapter(object):
         email_address.set_as_primary(conditional=True)
         email_address.save()
 
+    def confirm_delete_email(self, request, email_address):
+        """
+        Deletes the email upon confirmation
+        """
+        email_address.delete()
+
     def set_password(self, user, password):
         user.set_password(password)
         user.save()

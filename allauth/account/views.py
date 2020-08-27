@@ -577,7 +577,7 @@ class EmailView(AjaxCapableProcessFormViewMixin, FormView):
                     'account/messages/'
                     'email_delete_confirmation_sent.txt',
                     {'email': email})
-                email_address.send_confirmation(request)
+                email_address.send_delete_confirmation(request)
             return HttpResponseRedirect(self.get_success_url())
         except EmailAddress.DoesNotExist:
             pass

@@ -11,7 +11,7 @@ from django.utils.translation import gettext_lazy as _
 from .. import app_settings as allauth_app_settings
 from . import app_settings, signals
 from .adapter import get_adapter
-from .managers import EmailAddressManager, EmailConfirmationManager
+from .managers import EmailAddressManager, EmailConfirmationManager, EmailDeleteConfirmationManager
 from .utils import user_email
 
 
@@ -60,10 +60,10 @@ class EmailAddress(models.Model):
 
     def send_delete_confirmation(self, request=None):
         if app_settings.EMAIL_CONFIRMATION_HMAC:
-            confirmation = EmailConfirmationHMAC(self)
+            confirmation = EmailDeleteConfirmationHMAC(self)
         else:
-            confirmation = EmailConfirmation.create(self)
-        confirmation.send(request, signup=False)
+            confirmation = EmailDeleteConfirmation.create(self)
+        confirmation.send(request)
         return confirmation
 
     def change(self, request, new_email, confirm=True):
@@ -134,6 +134,100 @@ class EmailConfirmation(models.Model):
 class EmailConfirmationHMAC:
 
     def __init__(self, email_address):
+        self.email_address = email_address
+
+    @property
+    def key(self):
+        return signing.dumps(
+            obj=self.email_address.pk,
+            salt=app_settings.SALT)
+
+    @classmethod
+    def from_key(cls, key):
+        try:
+            max_age = (
+                60 * 60 * 24 * app_settings.EMAIL_CONFIRMATION_EXPIRE_DAYS)
+            pk = signing.loads(
+                key,
+                max_age=max_age,
+                salt=app_settings.SALT)
+            ret = EmailConfirmationHMAC(EmailAddress.objects.get(pk=pk))
+        except (signing.SignatureExpired,
+                signing.BadSignature,
+                EmailAddress.DoesNotExist):
+            ret = None
+        return ret
+
+    def confirm(self, request):
+        if not self.email_address.verified:
+            email_address = self.email_address
+            get_adapter(request).confirm_email(request, email_address)
+            signals.email_confirmed.send(sender=self.__class__,
+                                         request=request,
+                                         email_address=email_address)
+            return email_address
+
+    def send(self, request=None, signup=False):
+        get_adapter(request).send_confirmation_mail(request, self, signup)
+        signals.email_confirmation_sent.send(sender=self.__class__,
+                                             request=request,
+                                             confirmation=self,
+                                             signup=signup)
+
+
+class EmailDeleteConfirmation(models.Model):
+
+    email_address = models.ForeignKey(EmailAddress,
+                                      verbose_name=_('e-mail address'),
+                                      on_delete=models.CASCADE)
+    created = models.DateTimeField(verbose_name=_('created'),
+                                   default=timezone.now)
+    sent = models.DateTimeField(verbose_name=_('sent'), null=True)
+    key = models.CharField(verbose_name=_('key'), max_length=64, unique=True)
+
+    objects = EmailDeleteConfirmationManager()
+
+    class Meta:
+        verbose_name = _("email delete confirmation")
+        verbose_name_plural = _("email delete confirmations")
+
+    def __str__(self):
+        return "confirmation of deletion for %s" % self.email_address
+
+    @classmethod
+    def create(cls, email_address):
+        key = get_random_string(64).lower()
+        return cls._default_manager.create(email_address=email_address,
+                                           key=key)
+
+    def key_expired(self):
+        expiration_date = self.sent \
+            + datetime.timedelta(days=app_settings
+                                 .EMAIL_CONFIRMATION_EXPIRE_DAYS)
+        return expiration_date <= timezone.now()
+    key_expired.boolean = True
+
+    def confirm(self, request):
+        if not self.key_expired() and not self.email_address.verified:
+            email_address = self.email_address
+            get_adapter(request).confirm_email(request, email_address)
+            signals.email_removed.send(sender=self.__class__,
+                                         request=request,
+                                         email_address=email_address)
+            return email_address
+
+    def send(self, request=None):
+        get_adapter(request).send_delete_confirmation_mail(request, self)
+        self.sent = timezone.now()
+        self.save()
+        signals.email_delete_confirmation_sent.send(sender=self.__class__,
+                                                    request=request,
+                                                    confirmation=self)
+
+
+class EmailDeleteConfirmationHMAC:
+
+    def __init__(self, email_address):
         self._email_address = email_address
 
     @property
@@ -169,15 +263,15 @@ class EmailConfirmationHMAC:
     def confirm(self, request):
         if not self.email_address.verified:
             email_address = self.email_address
-            get_adapter(request).confirm_email(request, email_address)
-            signals.email_confirmed.send(sender=self.__class__,
-                                         request=request,
-                                         email_address=email_address)
+            get_adapter(request).confirm_delete_email(request, email_address)
+            signals.email_delete_confirmed.send(sender=self.__class__,
+                                            request=request,
+                                            email_address=email_address)
             return email_address
 
-    def send(self, request=None, signup=False):
-        get_adapter(request).send_confirmation_mail(request, self, signup)
-        signals.email_confirmation_sent.send(sender=self.__class__,
+    def send(self, request=None):
+        get_adapter(request).send_delete_confirmation_mail(request, self)
+        signals.email_delete_confirmation_sent.send(sender=self.__class__,
                                              request=request,
-                                             confirmation=self,
-                                             signup=signup)
+                                             confirmation=self)
+
