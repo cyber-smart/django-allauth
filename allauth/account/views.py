@@ -27,7 +27,12 @@ from .forms import (
     SignupForm,
     UserTokenForm,
 )
-from .models import EmailAddress, EmailConfirmation, EmailConfirmationHMAC
+from .models import (
+    EmailAddress, 
+    EmailConfirmation, 
+    EmailDeleteConfirmation,
+    EmailConfirmationHMAC,
+    EmailDeleteConfirmationHMAC,
 from .utils import (
     complete_signup,
     get_login_redirect_url,
