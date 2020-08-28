@@ -575,6 +575,15 @@ class EmailView(AjaxCapableProcessFormViewMixin, FormView):
                     'account/messages/'
                     'cannot_delete_primary_email.txt',
                     {"email": email})
+            elif not email_address.verified:
+                # no verification required to delete unverified emails
+                get_adapter(request).add_message(
+                    request,
+                    messages.INFO,
+                    'account/messages/'
+                    'email_deleted.txt',
+                    {'email': email})
+                email_address.delete()
             else:
                 # send delete verification email
                 get_adapter(request).add_message(

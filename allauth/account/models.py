@@ -261,17 +261,16 @@ class EmailDeleteConfirmationHMAC:
         return ret
 
     def confirm(self, request):
-        if not self.email_address.verified:
-            email_address = self.email_address
-            get_adapter(request).confirm_delete_email(request, email_address)
-            signals.email_delete_confirmed.send(sender=self.__class__,
+        email_address = self.email_address
+        get_adapter(request).confirm_delete_email(request, email_address)
+        signals.email_delete_confirmed.send(sender=self.__class__,
                                             request=request,
                                             email_address=email_address)
-            return email_address
+        return email_address
 
     def send(self, request=None):
         get_adapter(request).send_delete_confirmation_mail(request, self)
         signals.email_delete_confirmation_sent.send(sender=self.__class__,
-                                             request=request,
-                                             confirmation=self)
+                                                    request=request,
+                                                    confirmation=self)
 
